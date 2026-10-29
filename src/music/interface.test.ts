@@ -1,0 +1,38 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import App from '../App';
+
+test('the initial interface renders melody training with the preferred upper frets and optional piano', () => {
+  const html = renderToStaticMarkup(createElement(App));
+  assert.ok(html.includes('aria-label="Følg melodien"'));
+  assert.ok(html.includes('Vent på korrekt tone'));
+  assert.ok(html.includes('Følg tempoet'));
+  assert.ok(html.includes('Vis klaver'));
+  assert.ok(html.includes('<option value="none" selected="">Kun øveprikker</option>'));
+  assert.ok(html.includes('aria-label="Start metronom"'));
+  assert.ok(!html.includes('aria-label="Klaviatur synkroniseret med gribebrættet"'));
+  assert.ok(html.includes('class="inlay double"'));
+  assert.ok(html.includes('<option value="upper" selected="">Omkring bånd 10–12</option>'));
+  assert.ok(html.includes('aria-label="Vælg grebsforslag"'));
+  assert.ok(html.includes('class="position-window"'));
+  assert.equal((html.match(/class="fret-number [^"]*in-window"/g) ?? []).length, 3);
+  assert.ok(html.includes('<optgroup label="Salmer">'));
+  assert.ok(html.includes('Dejlig er jorden'));
+  assert.ok(html.includes('Guitargenveje'));
+  assert.ok(html.includes('Tynd E-streng · bånd 17'));
+  assert.ok(html.includes('A♯5'));
+  assert.ok(html.includes('Pause / fortsæt'));
+  assert.ok(html.includes('Tænd lydindgangen først.'));
+  assert.ok(html.includes('Spil C4 for at starte. Anslaget tæller som første tone.'));
+  assert.ok(html.includes('aria-label="Vælg øvelsestype"'));
+  assert.ok(html.includes('aria-label="Vælg instrument"'));
+  assert.ok(html.includes('Stemmeværktøj'));
+  assert.ok(html.includes('class="settings-dialog tuner-dialog"'));
+  assert.ok(html.includes('<option value="violin">Violin</option>'));
+  assert.ok(html.includes('Skalaer'));
+  assert.ok(html.includes('Skjul noder'));
+  assert.ok(html.includes('aria-label="Rullende noder"'));
+  assert.ok(!html.includes('class="trainer-lane"'), 'the staff replaces the old note cards while visible');
+});
