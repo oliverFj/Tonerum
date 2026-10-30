@@ -60,7 +60,7 @@ test('expanded songbook keeps complete forms, explicit sources and playable guit
     ['ingen-er-saa-tryg', 32, 24, 61, 74], ['holly-and-ivy', 59, 48, 60, 74],
     ['terra-beata', 63, 64, 58, 75],
   ] as const;
-  assert.equal(MELODIES.length, 17);
+  assert.equal(MELODIES.filter(m => !m.id.startsWith('civ-')).length, 28);
   assert.equal(new Set(MELODIES.map(m => m.id)).size, MELODIES.length);
   for (const [id, count, beats, low, high] of expected) {
     const melody = MELODIES.find(m => m.id === id)!;
@@ -74,7 +74,7 @@ test('expanded songbook keeps complete forms, explicit sources and playable guit
     assert.ok(melody.events.every(e => e.duration > 0 && Number.isFinite(e.duration)), melody.id);
     assert.ok(melody.events.every(e => e.type === 'rest' || findPositions(e.midi).length), melody.id);
     assert.ok(melody.source.url.startsWith('https://'));
-    assert.ok(['Børnesange', 'Salmer', 'Traditionals'].includes(melody.category));
+    assert.ok(['Børnesange', 'Salmer', 'Traditionals', 'Civilization VI'].includes(melody.category));
   }
 });
 

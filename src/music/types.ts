@@ -19,12 +19,12 @@ export interface RestEvent {
 export type MelodyEvent = NoteEvent | RestEvent;
 
 export interface Melody {
-  category: 'Børnesange' | 'Salmer' | 'Traditionals' | 'Skalaer';
+  category: 'Børnesange' | 'Salmer' | 'Traditionals' | 'Civilization VI' | 'Skalaer';
   id: string;
   title: string;
   subtitle: string;
   composer: string;
-  key: { tonic: number; mode: 'major' | 'minor'; label: string };
+  key: { tonic: number; mode: 'major' | 'minor'; label: string; intervals?: number[] };
   timeSignature: [number, number];
   tempo: number;
   events: MelodyEvent[];

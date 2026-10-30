@@ -2,7 +2,7 @@ import type { Melody, MelodyEvent } from './types';
 
 // Absolute pitches; suffixes are durations in quarter-note beats. Source
 // transpositions are explicit in each edition note, never inferred at runtime.
-function notes(text: string): MelodyEvent[] {
+export function notes(text: string): MelodyEvent[] {
   return text.trim().split(/\s+/).map(token => {
     const match = /^([A-GR])([#b]?)(\d)?(?::([\d.]+))?$/.exec(token);
     if (!match) throw new Error(`Invalid melody note: ${token}`);

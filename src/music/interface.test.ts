@@ -20,6 +20,10 @@ test('the initial interface renders melody training with the preferred upper fre
   assert.equal((html.match(/class="fret-number [^"]*in-window"/g) ?? []).length, 3);
   assert.ok(html.includes('<optgroup label="Salmer">'));
   assert.ok(html.includes('Dejlig er jorden'));
+  assert.ok(html.includes('<optgroup label="Civilization VI">'));
+  assert.ok(html.includes('England · Scarborough Fair'));
+  assert.ok(!html.includes('civilization-library'));
+  assert.ok(html.includes('Kina · Mo Li Hua'));
   assert.ok(html.includes('Guitargenveje'));
   assert.ok(html.includes('Tynd E-streng · bånd 17'));
   assert.ok(html.includes('A♯5'));

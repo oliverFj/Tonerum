@@ -1,5 +1,7 @@
 import type { Melody, MelodyEvent, NoteEvent } from './types';
 import { FOLK_MELODIES } from './folkMelodies';
+import { CIVILIZATION_MELODIES } from './civilizationMelodies';
+import { DANISH_HYMNS } from './danishHymns';
 
 const n = (midi: number, duration = 1): NoteEvent => ({ type: 'note', midi, duration });
 const r = (duration: number): MelodyEvent => ({ type: 'rest', duration });
@@ -98,4 +100,6 @@ export const MELODIES: Melody[] = [
     source: { ...folkSource, edition: 'Hele den noterede melodi i C-dur, 4 takter i 4/4 med punkterede rytmer og trioler, som i kilden. Ingen udeladte gentagelsestegn.' },
   },
   ...FOLK_MELODIES,
+  ...DANISH_HYMNS,
+  ...CIVILIZATION_MELODIES,
 ];
