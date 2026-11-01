@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "libraryVersion": "3.4.2",
+  "library": "design/runtime/components.mjs",
+  "studioRoot": "E:/AI projekter/Design Studio",
+  "package": "design/design.json",
+  "css": "design/design.css",
+  "scope": "#root",
+  "starter": "studio-light",
+  "components": {
+    "button": {
+      "file": "src/components/StudioControls.tsx",
+      "export": "Button"
+    },
+    "select": {
+      "file": "src/components/StudioControls.tsx",
+      "export": "Select"
+    },
+    "segmented-option": {
+      "file": "src/components/StudioControls.tsx",
+      "export": "SegmentedOption"
+    }
+  }
+}

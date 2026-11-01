@@ -1,0 +1,35 @@
+/* Instrument materials stay intact; these are the product's musical states. */
+#root[data-appearance="dark"] {
+  --accent-soft: var(--ds-palette-accent-950);
+  --accent-ink: var(--ds-palette-accent-100);
+  --accent-border: var(--ds-palette-accent-500);
+  --staff-line: var(--ds-palette-neutral-600);
+  --staff-note: var(--ds-palette-neutral-200);
+  color-scheme: dark;
+}
+#root[data-appearance="dark"] :is(.trainer-tempo input[type="number"], .custom-fingering input, .pitch-chip, .inspection, .guitar-shortcut-notes b) {
+  background: var(--ds-color-background-control);
+  color: var(--ink);
+  border-color: var(--ds-color-border-field);
+}
+#root[data-appearance="dark"] :is(.live-level, .input-level > div, .tuner-input > div, .tuning-track) { background: var(--surface-subtle); }
+#root[data-appearance="dark"] :is(.trainer-live strong, .violin-position-feedback > output, .tuner-readout.in-tune, .tuner-status.in-tune) { color: #8bd9c2; }
+#root[data-appearance="dark"] :is(.trainer-target.hit .trainer-note, .trainer-token.correct) { color: #a2e5c9; background: #183d35; border-color: #5ca38d; }
+#root[data-appearance="dark"] .trainer-token { color: var(--muted); background: var(--surface-subtle); border-color: var(--border); }
+#root[data-appearance="dark"] .trainer-token.now { color: var(--accent-ink); background: var(--accent-soft); border-color: var(--accent-border); }
+#root[data-appearance="dark"] .trainer-token.correct { color: #a2e5c9; background: #183d35; border-color: #5ca38d; }
+#root[data-appearance="dark"] .trainer-token.missed { color: #f0b8a8; background: #422e30; border-color: #a57268; }
+#root[data-appearance="dark"] :is(.staff-note.correct, .correct-target) { color: #8bd9c2; }
+#root[data-appearance="dark"] .staff-note.missed { color: #f0b8a8; }
+#root[data-appearance="dark"] :is(.staff-clef, .staff-octave) { fill: var(--muted); }
+#root[data-appearance="dark"] :is(.tuner-status, .tuner-strings > button > span, .tuner-gauge > span, .tuner-frequencies, .tuner-help, .staff-heading, .trainer-bottom, .guitar-shortcuts, .scale-range, .violin-finger-labels, .violin-board-footer) { color: var(--muted); }
+#root[data-appearance="dark"] .tuner-gauge { border-top-color: var(--border); }
+#root[data-appearance="dark"] .tuner-needle { background: var(--accent); }
+#root[data-appearance="dark"] .in-tune .tuner-needle { background: #8bd9c2; }
+#root[data-appearance="dark"] .pitch-chip.unavailable { color: var(--accent-ink); background: var(--accent-soft); }
+#root[data-appearance="dark"] .fret-number { color: var(--muted); }
+#root[data-appearance="dark"] .fret-number.is-center { color: var(--ds-color-action-primary-rest-text); background: var(--green); }
+#root[data-appearance="dark"] .position-window { background: #94b0d326; }
+#root[data-appearance="dark"] .studio-settings-button i.connected { background: #8bd9c2; }
+#root[data-appearance="dark"] .switch { background: #657487; }
+#root[data-appearance="dark"] .switch-control input:checked + .switch { background: var(--green); }

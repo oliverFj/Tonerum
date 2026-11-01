@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
+import { TABLER_LICENSE } from '../design/runtime/icons.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const dist = resolve(root, 'dist');
@@ -22,6 +23,9 @@ html = html.replace(/<script>\s*if \(location\.protocol === 'file:'\) location\.
 if (/<script\b[^>]*\bsrc=|<link\b[^>]*rel="stylesheet"|@import\b/.test(html)) {
   throw new Error('The standalone app still depends on external scripts or styles.');
 }
+
+const fontLicenses = await Promise.all(['inter-OFL.txt', 'roboto-mono-OFL.txt'].map(name => readFile(resolve(root, 'design/assets', name), 'utf8')));
+html = html.replace('</head>', `<!-- Bundled asset licenses\n${[TABLER_LICENSE, ...fontLicenses].join('\n\n').replace(/--/g, '—')}\n-->\n</head>`);
 
 await writeFile(resolve(dist, 'index.html'), html);
 await writeFile(resolve(root, 'Tonerum.html'), html);

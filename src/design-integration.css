@@ -1,0 +1,63 @@
+/* Product composition only; control anatomy and states come from design.css. */
+.studio-shell.ds-layout { --ds-layout-max-width: 1560px; }
+#root { --green: var(--ds-color-action-primary-rest-surface); --green-dark: var(--ds-color-action-primary-hover-surface); --ink: var(--ds-color-text-primary); --muted: var(--ds-color-text-secondary); --border: var(--ds-color-border-default); --paper: var(--ds-color-background-surface); --light-green: var(--ds-color-background-subtle); }
+#root {
+  --surface-subtle: var(--ds-color-background-subtle);
+  --accent: var(--ds-color-brand-accent);
+  --accent-soft: var(--ds-palette-accent-100);
+  --accent-ink: var(--ds-palette-accent-800);
+  --accent-border: var(--ds-palette-accent-300);
+  --staff-line: var(--ds-palette-neutral-300);
+  --staff-note: var(--ds-palette-neutral-700);
+  --gold: var(--ds-palette-accent-400);
+  min-height: 100dvh;
+  color: var(--ink);
+  background: var(--ds-color-background-canvas);
+  font-family: var(--ds-typography-font-body);
+}
+.brand-dot { color: var(--accent); }
+.brand-mark b { background: var(--accent); box-shadow: 0 0 0 3px var(--ds-color-background-canvas); }
+.studio-header { border-bottom-color: var(--ds-color-border-default); }
+.studio-header .brand { font-weight: 650; letter-spacing: -1.4px; }
+.studio-header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+.trainer-card, .explorer, .card, .scrolling-staff, .hunt-banner {
+  border-color: var(--border);
+  border-radius: var(--ds-radius-card);
+  background: var(--paper);
+  box-shadow: var(--ds-shadow-card);
+}
+.settings-dialog { background: var(--ds-color-background-canvas); border-color: var(--border); }
+.settings-dialog::backdrop { background: #15213670; }
+.trainer-note {
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  font-family: var(--ds-typography-font-mono);
+  font-weight: 500;
+}
+.trainer-target.hit .trainer-note { color: #25644e; background: #e3f2eb; border-color: #87bfa8; }
+.trainer-target h2 { color: var(--ink); font-weight: 650; }
+.trainer-target > div > p:last-child,
+.trainer-live > span, .live-label, .board-caption, .studio-footnote,
+.staff-heading, .staff-heading strong, .staff-heading small { color: var(--muted); }
+.trainer-live strong, .tuner-readout strong { font-family: var(--ds-typography-font-mono); font-weight: 500; }
+.song-progress { background: var(--surface-subtle); }
+.song-progress > i { background: var(--green); }
+.staff-play-line { stroke: var(--accent); }
+.staff-play-marker { fill: var(--accent); }
+.staff-note.current:not(.correct):not(.missed) { color: var(--accent); }
+.staff-line { stroke: var(--staff-line); }
+.staff-note { color: var(--staff-note); }
+.workspace-tabs, .exercise-tabs, .training-modes { min-width: 0; }
+.trainer-transport { max-width: 270px; }
+.ds-button > svg { flex-shrink: 0; }
+@media (max-width: 1000px) {
+  .studio-header { height: auto; flex-wrap: wrap; padding-block: 10px; gap: 10px; }
+  .workspace-tabs { order: 3; width: 100%; margin-left: 0; }
+  .workspace-tabs > button { flex: 1; }
+}
+@media (max-width: 600px) {
+  .workspace-tabs, .training-modes { display: flex; }
+  .workspace-tabs > button, .training-modes > button { flex: 1; }
+  .trainer-transport { max-width: none; }
+}

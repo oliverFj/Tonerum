@@ -1,3 +1,4 @@
+import { Button, SegmentedOption } from './StudioControls';
 import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import type { useMelodyTrainer } from '../hooks/useMelodyTrainer';
@@ -60,11 +61,11 @@ export default function MelodyTrainer({ instrument = 'guitar', trainer, micropho
     ? `Spil ${noteName(firstNote.midi, true)} for at ${done ? 'øve igen' : 'starte'}. Anslaget tæller som første tone.${mode === 'rhythm' ? ' Tempoet starter med dit anslag.' : ''}` : '';
   return <section className="trainer-card" aria-label={isScale ? 'Øv skala' : 'Følg melodien'}>
     <div className="trainer-options">
-      <div className="segmented training-modes" aria-label="Øvemåde">
-        <button className={mode === 'wait' ? 'active' : ''} aria-pressed={mode === 'wait'} onClick={() => trainer.setMode('wait')}>Vent på korrekt tone</button>
-        <button className={mode === 'rhythm' ? 'active' : ''} aria-pressed={mode === 'rhythm'} onClick={() => trainer.setMode('rhythm')}>Følg tempoet</button>
+      <div role="group" className="ds-segmented-control training-modes" aria-label="Øvemåde">
+        <SegmentedOption className={mode === 'wait' ? 'active' : ''} aria-pressed={mode === 'wait'} onClick={() => trainer.setMode('wait')}>Vent på korrekt tone</SegmentedOption>
+        <SegmentedOption className={mode === 'rhythm' ? 'active' : ''} aria-pressed={mode === 'rhythm'} onClick={() => trainer.setMode('rhythm')}>Følg tempoet</SegmentedOption>
       </div>
-      <div className="trainer-tempo"><button className={`metronome-toggle ${metronomeOn ? 'on' : ''}`} aria-pressed={metronomeOn} aria-label={metronomeOn ? 'Stop metronom' : 'Start metronom'} disabled={microphone.calibrating} onClick={onMetronome}><i key={metronomePulse} className={metronomeOn && metronomePulse > 0 ? 'tick' : ''} aria-hidden="true" />Metronom</button><label htmlFor="practice-speed">Hastighed <strong>{Math.round(tempo / melody.tempo * 100)} %</strong></label><input id="practice-speed" type="range" min="25" max="150" step="5" value={Math.round(tempo / melody.tempo * 100)} onChange={e => onTempo(Math.round(melody.tempo * +e.target.value / 100))} /><label><input type="number" aria-label="Tempo i slag per minut" min="20" max="240" value={tempo} onChange={e => onTempo(Math.max(20, Math.min(240, +e.target.value || 20)))} /> BPM</label></div>
+      <div className="trainer-tempo"><Button className={`metronome-toggle ${metronomeOn ? 'on' : ''}`} aria-pressed={metronomeOn} aria-label={metronomeOn ? 'Stop metronom' : 'Start metronom'} disabled={microphone.calibrating} onClick={onMetronome}><i key={metronomePulse} className={metronomeOn && metronomePulse > 0 ? 'tick' : ''} aria-hidden="true" />Metronom</Button><label htmlFor="practice-speed">Hastighed <strong>{Math.round(tempo / melody.tempo * 100)} %</strong></label><input id="practice-speed" type="range" min="25" max="150" step="5" value={Math.round(tempo / melody.tempo * 100)} onChange={e => onTempo(Math.round(melody.tempo * +e.target.value / 100))} /><label><input type="number" aria-label="Tempo i slag per minut" min="20" max="240" value={tempo} onChange={e => onTempo(Math.max(20, Math.min(240, +e.target.value || 20)))} /> BPM</label></div>
     </div>
     <div className="trainer-main">
       <div className={`trainer-target ${currentCorrect || done ? 'hit' : ''}`} aria-live="polite">
@@ -76,9 +77,9 @@ export default function MelodyTrainer({ instrument = 'guitar', trainer, micropho
       </div>
       <div className="trainer-live"><span className="live-label">{instrument === 'violin' ? 'DIN VIOLIN' : 'DIN GUITAR'}</span><strong>{reading ? noteName(reading.midi, true) : '–'}</strong><span>{microphone.sample.appSound ? 'Afventer guidetone' : reading ? `${Math.round(reading.cents) > 0 ? '+' : ''}${Math.round(reading.cents)} cent` : microphone.status === 'listening' ? 'Lytter…' : 'Lydindgang slukket'}</span><div className="live-level" role="meter" aria-label={instrument === 'violin' ? 'Violinens lydniveau' : 'Guitarens lydniveau'} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(signalPercent(microphone.sample.level))}><i style={{ width: `${signalPercent(microphone.sample.level)}%` }} /></div></div>
       <div className="trainer-transport">
-        {active ? <button className="learning-primary" onClick={trainer.pause}><Icon name="pause" size={15} />Pause</button> : <button className="learning-primary" disabled={microphone.calibrating || microphone.status === 'requesting'} onClick={() => void onStart()}><Icon name="play" size={15} />{paused ? 'Fortsæt' : done ? 'Øv igen' : 'Start øvelse'}</button>}
-        {started && !done && <button className="learning-text-button" onClick={trainer.stop}>Stop</button>}
-        <button className="learning-text-button" onClick={onDemo} disabled={microphone.calibrating}><Icon name={demoPlaying ? 'pause' : 'sound'} size={14} />{demoPlaying ? 'Stop gennemlytning' : isScale ? 'Hør skalaen' : 'Hør melodien'}</button>
+        {active ? <Button className="learning-primary" onClick={trainer.pause}><Icon name="pause" size={15} />Pause</Button> : <Button className="learning-primary" disabled={microphone.calibrating || microphone.status === 'requesting'} onClick={() => void onStart()}><Icon name="play" size={15} />{paused ? 'Fortsæt' : done ? 'Øv igen' : 'Start øvelse'}</Button>}
+        {started && !done && <Button className="learning-text-button" onClick={trainer.stop}>Stop</Button>}
+        <Button className="learning-text-button" onClick={onDemo} disabled={microphone.calibrating}><Icon name={demoPlaying ? 'pause' : 'sound'} size={14} />{demoPlaying ? 'Stop gennemlytning' : isScale ? 'Hør skalaen' : 'Hør melodien'}</Button>
       </div>
     </div>
     {showLane && <div ref={laneRef} className="trainer-lane" tabIndex={0} role="region" aria-label="Melodiens toner. Rul vandret for at se tidligere og kommende toner.">
@@ -93,7 +94,7 @@ export default function MelodyTrainer({ instrument = 'guitar', trainer, micropho
         </div>;
       })}
     </div>}
-    <div className="trainer-bottom"><div className="song-progress" role="progressbar" aria-label="Fremdrift i melodien" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}><i style={{ width: `${progress * 100}%` }} /></div><span>{correct} / {total} ramt{missed > 0 ? ` · ${missed} ikke ramt` : ''}</span><button className="learning-text-button" onClick={onMicrophone}>{microphone.status === 'listening' ? 'Sluk lydindgang' : 'Tænd lydindgang'}</button><button className="learning-text-button" onClick={onSettings}>Lydvalg og kalibrering</button></div>
+    <div className="trainer-bottom"><div className="song-progress" role="progressbar" aria-label="Fremdrift i melodien" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}><i style={{ width: `${progress * 100}%` }} /></div><span>{correct} / {total} ramt{missed > 0 ? ` · ${missed} ikke ramt` : ''}</span><Button className="learning-text-button" onClick={onMicrophone}>{microphone.status === 'listening' ? 'Sluk lydindgang' : 'Tænd lydindgang'}</Button><Button className="learning-text-button" onClick={onSettings}>Lydvalg og kalibrering</Button></div>
     <div className={`guitar-shortcuts ${guitarShortcuts ? 'enabled' : ''}`}>
       <label className="switch-control"><input type="checkbox" checked={guitarShortcuts} onChange={e => onGuitarShortcuts(e.target.checked)} /><span className="switch" /><span>{instrument === 'violin' ? 'Start med første tone' : 'Guitargenveje'}</span></label>
       {instrument === 'guitar' && <div className="guitar-shortcut-notes">{GUITAR_CONTROLS.map(control => <span key={control.midi} className={guitarShortcuts && reading?.midi === control.midi ? 'heard' : ''} title={`Tynd E-streng · bånd ${control.fret}`}><b>{control.note}</b>{control.command === 'start' ? 'Start / øv igen' : control.command === 'pause' ? 'Pause / fortsæt' : 'Stop'}</span>)}</div>}

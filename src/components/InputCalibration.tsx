@@ -1,3 +1,4 @@
+import { Button } from './StudioControls';
 import { CALIBRATION_STRINGS } from '../music/calibration';
 import { noteName } from '../music/theory';
 import type { useMicrophone } from '../hooks/useMicrophone';
@@ -39,11 +40,11 @@ export default function InputCalibration({ instrument = 'guitar', microphone, on
       {calibration.message && <p className="inline-notice">{calibration.message}</p>}
       <div className="calibration-actions">
         {calibrating ? <>
-          {phase === 'strings' && <button className="learning-primary" disabled={!strings.length} onClick={microphone.finishCalibration}>Brug målingen</button>}
-          <button className="learning-text-button" onClick={microphone.cancelCalibration}>Annuller</button>
+          {phase === 'strings' && <Button className="learning-primary" disabled={!strings.length} onClick={microphone.finishCalibration}>Brug målingen</Button>}
+          <Button className="learning-text-button" onClick={microphone.cancelCalibration}>Annuller</Button>
         </> : <>
-          <button className="learning-secondary" disabled={status === 'requesting'} onClick={() => void onStart()}>{complete ? 'Kalibrer igen' : 'Dæmp strengene · mål baggrund'}</button>
-          {complete && <button className="learning-text-button" onClick={microphone.resetCalibration}>Nulstil</button>}
+          <Button className="learning-secondary" disabled={status === 'requesting'} onClick={() => void onStart()}>{complete ? 'Kalibrer igen' : 'Dæmp strengene · mål baggrund'}</Button>
+          {complete && <Button className="learning-text-button" onClick={microphone.resetCalibration}>Nulstil</Button>}
         </>}
       </div>
       <p className="calibration-note">Kalibreringen tilpasser lydgrænsen, ikke stemningen. Den kan ikke rette en forkert genkendt tone eller oktav. Indstillingen gælder denne lydindgang, mens programmet er åbent.</p>

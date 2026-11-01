@@ -1,3 +1,4 @@
+import { Button } from './StudioControls';
 import type { Instrument } from '../music/types';
 import type { useMicrophone } from '../hooks/useMicrophone';
 import { useState } from 'react';
@@ -29,8 +30,8 @@ export default function Tuner({ instrument, microphone, onStart, onStop, onRefer
         : measured.cents < 0 ? 'For lav — stem strengen op' : 'For høj — stem strengen ned';
   return <section className="tuner" aria-label={`Stemmeværktøj til ${instrument === 'violin' ? 'violin' : 'guitar'}`}>
     <div className="tuner-strings" aria-label="Vælg tone eller løs streng">
-      <button className={target === null ? 'selected' : ''} aria-pressed={target === null} onClick={() => setTarget(null)}>Automatisk<span>Nærmeste tone</span></button>
-      {tuning.map((midi, index) => <button key={midi} className={target === midi ? 'selected' : ''} aria-pressed={target === midi} onClick={() => setTarget(midi)}>{noteName(midi, true)}<span>{tuning.length - index}. streng</span></button>)}
+      <Button className={target === null ? 'selected' : ''} aria-pressed={target === null} onClick={() => setTarget(null)}>Automatisk<span>Nærmeste tone</span></Button>
+      {tuning.map((midi, index) => <Button key={midi} className={target === midi ? 'selected' : ''} aria-pressed={target === midi} onClick={() => setTarget(midi)}>{noteName(midi, true)}<span>{tuning.length - index}. streng</span></Button>)}
     </div>
     <div className={`tuner-readout ${direction}`}><strong>{shownMidi === null ? '–' : noteName(shownMidi, true)}</strong><span>{measured ? `${measured.cents > 0 ? '+' : ''}${Math.round(measured.cents)} cent` : 'Afventer tone'}</span></div>
     <p className={`tuner-status ${direction}`}>{status}</p>
@@ -39,7 +40,7 @@ export default function Tuner({ instrument, microphone, onStart, onStop, onRefer
       {measured && <b className="tuner-needle" style={{ left: `${measured.needle}%` }} />}
     </div>
     <div className="tuner-frequencies"><span>Målt: {reading ? `${noteName(reading.midi, true)} · ${reading.frequency.toFixed(1)} Hz` : '–'}</span><span>Mål: {shownMidi !== null ? `${midiFrequency(shownMidi).toFixed(1)} Hz` : '–'}</span></div>
-    <div className="tuner-actions"><button className={listening ? 'learning-secondary' : 'learning-primary'} disabled={microphone.status === 'requesting'} onClick={() => listening ? onStop() : void onStart()}>{listening ? 'Stop lytning' : microphone.status === 'requesting' ? 'Venter på tilladelse…' : 'Start lytning'}</button><button className="learning-secondary" onClick={() => onReference(target ?? measured?.midi ?? 69)}>Hør {noteName(target ?? measured?.midi ?? 69, true)}</button><button className="learning-text-button" onClick={onSettings}>Lydvalg og kalibrering</button></div>
+    <div className="tuner-actions"><Button className={listening ? 'learning-secondary' : 'learning-primary'} disabled={microphone.status === 'requesting'} onClick={() => listening ? onStop() : void onStart()}>{listening ? 'Stop lytning' : microphone.status === 'requesting' ? 'Venter på tilladelse…' : 'Start lytning'}</Button><Button className="learning-secondary" onClick={() => onReference(target ?? measured?.midi ?? 69)}>Hør {noteName(target ?? measured?.midi ?? 69, true)}</Button><Button className="learning-text-button" onClick={onSettings}>Lydvalg og kalibrering</Button></div>
     <div className="tuner-input"><span>Input</span><div><i style={{ width: `${signalPercent(microphone.sample.level)}%` }} /></div><span>{microphone.inputLabel ?? 'Lydindgang slukket'}</span></div>
     <p className="tuner-help">A4 = 440 Hz. Vælg en streng for at holde måltonen fast, også hvis strengen er meget ustemt. {instrument === 'violin' ? 'Spil de løse strenge med en rolig bueføring.' : 'Slå én løs streng an, og lad den klinge.'}</p>
     {microphone.error && <p className="inline-notice" role="alert">{microphone.error}</p>}
