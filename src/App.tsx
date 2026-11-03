@@ -26,7 +26,11 @@ import ViolinFingerboard from './components/ViolinFingerboard';
 import { instrumentPositions, melodyForInstrument, positionDescription } from './music/instruments';
 import { Icon } from './components/Icon';
 import Tuner from './components/Tuner';
+import CircleOfFifths from './components/CircleOfFifths';
 import { useAppearance } from './hooks/useAppearance';
+
+const logoLight = new URL('../design/assets/tonerum-symbol-light.svg', import.meta.url).href;
+const logoDark = new URL('../design/assets/tonerum-symbol-dark.svg', import.meta.url).href;
 
 export default function App() {
   const { appearance, resolvedAppearance, setAppearance } = useAppearance();
@@ -34,7 +38,7 @@ export default function App() {
   const [melodyId, setMelodyId] = useState('twinkle');
   const [exerciseKind, setExerciseKind] = useState<'melody' | 'scale'>('melody');
   const [scale, setScale] = useState<ScaleOptions>({ type: 'minor-pentatonic', tonic: 9, direction: 'both' });
-  const [workspace, setWorkspace] = useState<'practice' | 'explore'>('practice');
+  const [workspace, setWorkspace] = useState<'practice' | 'explore' | 'fifths'>('practice');
   const [center, setCenter] = useState(11);
   const [radius, setRadius] = useState(1);
   const [fingering, setFingering] = useState<FingeringPreset>('upper');
@@ -140,6 +144,7 @@ export default function App() {
     setTunerOpen(false); setInspected(null); setSelectedPitch(null); setInstrument(value);
   }
   function changeWorkspace(value: typeof workspace) {
+    microphone.cancelCalibration();
     setMetronomeOn(false);
     trainer.stop(); practice.stop(); setPlaying(false); setWorkspace(value); setInspected(null); setSelectedPitch(null);
   }
@@ -214,15 +219,22 @@ export default function App() {
 
   return <div data-layout="workspace" className={`app-shell studio-shell ds-scope ds-layout ${instrument}-studio`}>
     <header className="site-header studio-header">
-      <a className="brand" href="#" aria-label="Tonerum start"><span className="brand-mark" aria-hidden="true"><i /><i /><i /><i /><b /></span>tonerum<span className="brand-dot">.</span></a>
+      <a className="brand" href="#" aria-label="Tonerum start">
+        <img className="brand-symbol" src={resolvedAppearance === 'dark' ? logoDark : logoLight} width="40" height="40" alt="" />
+        <span className="brand-wordmark">tonerum<span className="brand-dot">.</span></span>
+      </a>
       <label className="instrument-picker">Instrument<Select aria-label="Vælg instrument" value={instrument} onChange={e => changeInstrument(e.target.value as Instrument)}><option value="guitar">Guitar</option><option value="violin">Violin</option></Select></label>
-      <nav className="ds-segmented-control workspace-tabs" aria-label="Arbejdsområde"><SegmentedOption className={workspace === 'practice' ? 'active' : ''} aria-pressed={workspace === 'practice'} onClick={() => changeWorkspace('practice')}>Øv melodi og skala</SegmentedOption><SegmentedOption className={workspace === 'explore' ? 'active' : ''} aria-pressed={workspace === 'explore'} onClick={() => changeWorkspace('explore')}>{instrument === 'violin' ? 'Udforsk violinen' : 'Udforsk gribebrættet'}</SegmentedOption></nav>
+      <nav className="ds-segmented-control workspace-tabs" aria-label="Arbejdsområde"><SegmentedOption className={workspace === 'practice' ? 'active' : ''} aria-pressed={workspace === 'practice'} onClick={() => changeWorkspace('practice')}>Øv melodi og skala</SegmentedOption><SegmentedOption className={workspace === 'explore' ? 'active' : ''} aria-pressed={workspace === 'explore'} onClick={() => changeWorkspace('explore')}>{instrument === 'violin' ? 'Udforsk violinen' : 'Udforsk gribebrættet'}</SegmentedOption><SegmentedOption aria-pressed={workspace === 'fifths'} onClick={() => changeWorkspace('fifths')}>Kvintcirklen</SegmentedOption></nav>
       <div className="studio-header-actions">
         <Button className="appearance-toggle" onClick={() => setAppearance(resolvedAppearance === 'dark' ? 'light' : 'dark')}>{resolvedAppearance === 'dark' ? 'Lyst tema' : 'Mørkt tema'}</Button>
         <Button className="studio-settings-button" onClick={openSettings}><Icon name="mic" size={15} /><span>Lyd og værktøjer</span><i className={microphone.status === 'listening' ? 'connected' : ''} /></Button>
       </div>
     </header>
     <main>
+      {workspace === 'fifths' ? <CircleOfFifths onHear={playReference} onScale={(tonic, minor) => {
+        changeExercise('scale', { tonic, type: minor ? 'minor' : 'major', direction: 'both' });
+        changeWorkspace('practice');
+      }} /> : <>
       <div className="studio-songbar"><div className="exercise-picker">
         <div role="group" className="ds-segmented-control exercise-tabs" aria-label="Vælg øvelsestype"><SegmentedOption className={exerciseKind === 'melody' ? 'active' : ''} aria-pressed={exerciseKind === 'melody'} onClick={() => changeExercise('melody')}>Sange</SegmentedOption><SegmentedOption className={exerciseKind === 'scale' ? 'active' : ''} aria-pressed={exerciseKind === 'scale'} onClick={() => changeExercise('scale')}>Skalaer</SegmentedOption></div>
         {exerciseKind === 'melody' ? <div className="melody-picker"><span className="music-tile"><Icon name="music" size={19} /></span><label><span className="field-label">VÆLG MELODI · {MELODIES.length} SANGE</span><span className="select-wrap"><Select value={melodyId} onChange={e => changeMelody(e.target.value)} aria-label="Vælg melodi">{['Børnesange', 'Salmer', 'Traditionals', 'Civilization VI'].map(category => <optgroup key={category} label={category}>{MELODIES.filter(m => m.category === category).map(m => <option key={m.id} value={m.id}>{m.title}</option>)}</optgroup>)}</Select><Icon name="chevron" size={16} /></span></label><span className="key-badge">{melody.key.label}<span>·</span>{melody.timeSignature.join('/')}</span></div>
@@ -247,6 +259,7 @@ export default function App() {
       {showPiano && <Piano currentMidi={event.type === 'note' ? event.midi : null} heardMidi={heardMidi} currentLabel="Meloditone" selectedMidi={inspected?.midi ?? null} selectedPitch={selectedPitch} melodyPitches={analysis.pitches} upcoming={upcoming.map(p => p.midi)} showLabels={showLabels} onSelect={inspectPiano} />}
       {audioError && <p className="inline-notice">Guidelyden kunne ikke startes. Du kan stadig øve med dit instrument.</p>}
       <div className="studio-footnote"><span>{colorMode === 'none' ? 'Baggrundstoner skjult · fingerplaceringer og spillede toner vises stadig' : workspace === 'practice' ? 'Gylden: foreslået placering · stiplet: andre placeringer · blågrøn: det du spiller' : `${analysis.pitches.length} meloditoner · håndposition ${useHandPosition ? 'til' : 'fra'}`}</span><Button className="learning-text-button" onClick={openSettings}>Visning, håndposition og nodekilde</Button></div>
+      </>}
     </main>
     <dialog ref={tunerRef} className="settings-dialog tuner-dialog" aria-labelledby="tuner-title" onCancel={() => setTunerOpen(false)} onClose={() => setTunerOpen(false)}>
       <div className="settings-heading"><div><p className="eyebrow">TONERUM · {instrument === 'violin' ? 'VIOLIN' : 'GUITAR'}</p><h2 id="tuner-title">Stemmeværktøj</h2></div><Button className="learning-secondary" onClick={() => setTunerOpen(false)}>Tilbage til øvelsen ×</Button></div>

@@ -16,6 +16,11 @@ for (const match of html.matchAll(/<link\b(?=[^>]*\brel="stylesheet")(?=[^>]*\bh
   const css = await readFile(resolve(dist, match[1].replace(/^\/+/, '')), 'utf8');
   html = html.replace(match[0], () => `<style>${css}</style>`);
 }
+for (const match of html.matchAll(/<link\b(?=[^>]*\brel="icon")(?=[^>]*\bhref="([^"]+)")[^>]*>/g)) {
+  if (match[1].startsWith('data:')) continue;
+  const icon = await readFile(resolve(dist, match[1].replace(/^\/+/, '')));
+  html = html.replace(match[0], () => match[0].replace(match[1], `data:image/svg+xml;base64,${icon.toString('base64')}`));
+}
 
 // The source entry redirects double-clicks here; the standalone file is final.
 html = html.replace(/<script>\s*if \(location\.protocol === 'file:'\) location\.replace\('\.\/Tonerum\.html'\);\s*<\/script>/, '');

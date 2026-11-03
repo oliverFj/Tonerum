@@ -307,6 +307,8 @@
   --ds-palette-accent-900: #512812;
   --ds-palette-accent-950: #3b1d0d;
   --ds-typography-font-mono: "Roboto Mono", ui-monospace, monospace;
+  --ds-color-brand-logoAccent: #e7b959;
+  --ds-color-brand-logoInk: #111925;
   color-scheme: light;
 }
 

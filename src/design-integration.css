@@ -10,15 +10,20 @@
   --staff-line: var(--ds-palette-neutral-300);
   --staff-note: var(--ds-palette-neutral-700);
   --gold: var(--ds-palette-accent-400);
+  --grip-color: var(--ds-color-brand-logoAccent);
+  --grip-ink: #111925;
+  --grip-border: #9b722c;
+  --grip-halo: color-mix(in srgb, var(--grip-color) 20%, transparent);
   min-height: 100dvh;
   color: var(--ink);
   background: var(--ds-color-background-canvas);
   font-family: var(--ds-typography-font-body);
 }
-.brand-dot { color: var(--accent); }
-.brand-mark b { background: var(--accent); box-shadow: 0 0 0 3px var(--ds-color-background-canvas); }
+.brand-dot { color: var(--ds-color-brand-logoAccent); margin-left: 0; }
+.brand-symbol { display: block; flex-shrink: 0; }
+.brand-wordmark { white-space: nowrap; }
 .studio-header { border-bottom-color: var(--ds-color-border-default); }
-.studio-header .brand { font-weight: 650; letter-spacing: -1.4px; }
+.studio-header .brand { color: var(--ds-color-brand-logoInk); font-weight: 800; letter-spacing: -1.2px; gap: 6px; }
 .studio-header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
 .trainer-card, .explorer, .card, .scrolling-staff, .hunt-banner {
   border-color: var(--border);

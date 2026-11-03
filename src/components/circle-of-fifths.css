@@ -1,0 +1,37 @@
+.fifths-workspace { margin: 28px auto; }
+.fifths-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; }
+.fifths-heading h1 { font-size: 28px; }
+.fifths-workspace p { font-size: 14px; line-height: 1.7; color: var(--muted); }
+.fifths-columns { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(260px, .8fr); align-items: center; gap: 32px; }
+.fifths-circle { position: relative; width: 100%; max-width: 540px; aspect-ratio: 1; margin-inline: auto; }
+.fifths-circle::before { content: ''; position: absolute; inset: 10%; border: 1px solid var(--border); border-radius: 50%; }
+.fifths-center { position: absolute; inset: 30%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; text-align: center; }
+.fifths-center span { font-size: 12px; color: var(--muted); }
+.fifths-circle .fifths-key { position: absolute; transform: translate(-50%, -50%); width: 18%; min-height: 52px; display: flex; flex-direction: column; gap: 3px; background: var(--paper); }
+.fifths-key strong { font-family: var(--ds-typography-font-mono); font-size: clamp(12px, 1.7vw, 18px); white-space: nowrap; }
+.fifths-key span { font-size: 12px; white-space: nowrap; }
+.fifths-detail { padding: 24px; }
+.fifths-detail h2 { font-size: 26px; }
+.fifths-detail dl { margin-block: 22px; }
+.fifths-detail dl > div { display: flex; justify-content: space-between; gap: 16px; padding-block: 9px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.fifths-detail dt { color: var(--muted); }
+.fifths-detail dd { margin: 0; }
+.fifths-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 16px; }
+.fifths-quiz { padding: 24px; margin-inline: auto; }
+.fifths-quiz > label { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+.fifths-quiz h2 { font-size: 22px; margin-block: 12px; }
+.fifths-answers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-block: 20px; }
+.fifths-feedback { min-height: 48px; }
+.fifths-explanation { max-width: 70ch; margin: 30px auto 0; }
+.fifths-explanation h2 { font-size: 18px; margin-bottom: 8px; }
+.fifths-explanation p + p { margin-top: 10px; }
+@media (max-width: 700px) {
+  .fifths-columns { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .fifths-circle { max-width: 460px; }
+  .fifths-key strong { font-size: 13px; }
+  .fifths-heading h1 { font-size: 24px; }
+  .fifths-detail, .fifths-quiz { padding: 16px; }
+  .fifths-answers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fifths-center span { font-size: 10px; }
+  .fifths-circle .fifths-key { padding-inline: 2px; }
+}
