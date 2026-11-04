@@ -1,0 +1,61 @@
+/* Compact product composition. The staff keeps its normal responsive size. */
+#root .studio-shell { padding: 0 20px 10px; }
+#root .studio-header { height: auto; min-height: 62px; padding-block: 8px; gap: 18px; }
+#root .workspace-tabs > button, #root .training-modes > button { white-space: nowrap; }
+#root .training-modes { flex-shrink: 0; }
+#root .studio-songbar { min-height: 48px; padding: 6px 2px; }
+#root .fingering-picker > p { display: none; }
+
+#root .trainer-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 5px 16px;
+  padding: 8px 14px;
+  margin-bottom: 8px;
+}
+#root .trainer-main { display: contents; }
+#root .trainer-target { grid-column: 1; grid-row: 1; gap: 10px; }
+#root .trainer-note { height: 42px; min-width: 50px; font-size: 23px; }
+#root .trainer-target .eyebrow { display: none; }
+#root .trainer-target h2 { font-size: 15px; }
+#root .trainer-target > div > p:last-child { font-size: 10px; margin-top: 2px; max-width: none; }
+#root .training-modes { grid-column: 2; grid-row: 1; }
+#root .trainer-transport { grid-column: 3; grid-row: 1; max-width: none; gap: 10px; }
+#root .trainer-bottom { grid-column: 1 / -1; grid-row: 2; padding: 0; min-height: 20px; }
+#root .trainer-options { grid-column: 1 / -1; grid-row: 3; padding-top: 6px; }
+#root .guitar-shortcuts { grid-column: 1 / -1; grid-row: 4; min-height: 24px; margin-top: 4px; padding-top: 4px; }
+#root .trainer-live .live-level { display: none; }
+
+#root .studio-board-toolbar { min-height: 36px; padding: 5px 18px 3px; gap: 10px; }
+#root .studio-board .fret-numbers { height: 28px; margin-bottom: 3px; }
+#root .studio-board .string-row { height: 32px; }
+#root .studio-board .fret-bottom { height: 22px; padding-block: 3px; }
+#root .studio-board .board-caption { padding: 3px 18px 6px; }
+#root .scrolling-staff { margin-top: 7px; padding: 5px 18px 1px; }
+#root .staff-heading { min-height: 18px; }
+#root .studio-footnote { display: none; }
+
+#root .studio-shell .piano-section { margin-top: 7px; padding: 8px 18px 6px; }
+#root .piano-heading { margin-bottom: 5px; }
+#root .studio-shell .white-keys, #root .studio-shell .white-key, #root .studio-shell .piano-keys { height: 70px; }
+#root .studio-shell .black-key { height: 46px; }
+
+@media (max-width: 1000px) {
+  #root .studio-header { height: auto; padding-block: 6px; gap: 8px; }
+  #root .trainer-card { display: flex; flex-direction: column; align-items: stretch; }
+  #root .trainer-main { display: flex; flex-wrap: wrap; padding: 9px 0; gap: 18px; }
+}
+@media (max-width: 600px) {
+  #root .studio-shell { padding-inline: 12px; }
+  #root .studio-header-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    margin-left: 0;
+    gap: 8px;
+  }
+  #root .studio-header-actions > button { width: 100%; margin: 0; justify-content: center; }
+  #root .trainer-options { flex-wrap: wrap; }
+  #root .trainer-tempo { min-width: 0; flex-wrap: wrap; }
+}

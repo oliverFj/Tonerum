@@ -43,11 +43,13 @@ export default function ScrollingStaff({ instrument = 'guitar', melody, state, i
     const timer = window.setInterval(() => setDemoBeat(Math.min(item.end, item.start + (performance.now() - startedAt) * tempo / 60000)), 40);
     return () => window.clearInterval(timer);
   }, [demoPlaying, index, notes, tempo]);
-  const beat = demoPlaying ? demoBeat : state.beat;
+  const readyToRestart = !demoPlaying && state.phase === 'complete';
+  const displayIndex = readyToRestart ? Math.max(0, notes.findIndex(item => item.event.type === 'note')) : index;
+  const beat = demoPlaying ? demoBeat : readyToRestart ? notes[displayIndex]?.start ?? 0 : state.beat;
   const moving = demoPlaying || state.phase === 'playing' || state.phase === 'countin';
   const travel = moving ? !demoPlaying && state.mode === 'wait' ? 'waiting' : 'running' : '';
   return <section className="scrolling-staff" aria-label="Rullende noder">
-    <div className="staff-heading"><strong>Noder</strong><span>{demoPlaying ? 'Lyt og følg med' : state.phase === 'complete' ? 'Øvelsen er færdig' : state.mode === 'wait' ? 'Spil ved linjen · noderne venter på dig' : 'Spil, når noden rammer linjen'}</span><small title={instrument === 'violin' ? 'Violinnoder skrives i den klingende oktav.' : 'Almindelige guitarnoder skrives én oktav over deres klingende tone. Tonenavnene viser den tone, du spiller.'}>{instrument === 'violin' ? 'G-nøgle · klingende oktav' : 'G-nøgle · guitaroktav'}</small></div>
+    <div className="staff-heading"><strong>Noder</strong><span>{demoPlaying ? 'Lyt og følg med' : readyToRestart ? 'Klar til næste gennemspilning' : state.mode === 'wait' ? 'Spil ved linjen · noderne venter på dig' : 'Spil, når noden rammer linjen'}</span><small title={instrument === 'violin' ? 'Violinnoder skrives i den klingende oktav.' : 'Almindelige guitarnoder skrives én oktav over deres klingende tone. Tonenavnene viser den tone, du spiller.'}>{instrument === 'violin' ? 'G-nøgle · klingende oktav' : 'G-nøgle · guitaroktav'}</small></div>
     <div ref={container} className="staff-viewport">
       <svg viewBox={`0 0 ${width} 152`} preserveAspectRatio="none" role="img" aria-label={`Noder til ${melody.title}. Den gyldne linje er spillepunktet. Grønne noder er ramt. Den blå prik viser den tone, du spiller.`}>
         <defs><clipPath id={clipId}><rect x={98} y={0} width={Math.max(0, width - 98)} height={152} /></clipPath></defs>
@@ -63,7 +65,7 @@ export default function ScrollingStaff({ instrument = 'guitar', melody, state, i
               const shape = noteShape(item.event.duration);
               const y = (item.pitch?.y ?? 56) + 10;
               const down = y < 66, stemX = down ? -6 : 6, stemEnd = y + (down ? 32 : -32);
-              return <g key={noteIndex} className={`staff-note ${result} ${noteIndex === index ? 'current' : ''}`} transform={`translate(${x},0)`}>
+              return <g key={noteIndex} className={`staff-note ${result} ${noteIndex === displayIndex ? 'current' : ''}`} transform={`translate(${x},0)`}>
                 <title>{`${item.event.type === 'note' ? noteName(item.event.midi, true) : 'Pause'} · ${item.event.duration.toLocaleString('da-DK', { maximumFractionDigits: 2 })} slag${result === 'correct' ? ' · ramt' : result === 'missed' ? ' · ikke ramt' : ''}`}</title>
                 {item.pitch ? <>
                   {item.pitch.ledger.map(line => <line key={line} className="staff-ledger" x1={-11} x2={11} y1={line + 10} y2={line + 10} />)}

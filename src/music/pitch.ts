@@ -74,32 +74,93 @@ export function detectPitch(samples: Float32Array, sampleRate: number, gate = .0
   return null;
 }
 
+export interface PitchDetectionSettings {
+  attackRisePercent: number;
+  minAttackMs: number;
+  releaseMs: number;
+}
+
+export const DEFAULT_PITCH_SETTINGS: Readonly<PitchDetectionSettings> = Object.freeze({
+  attackRisePercent: 35, minAttackMs: 120, releaseMs: 120,
+});
+
 /** A sustained note is one attempt. A new pitch, silence, or a fresh attack
  * starts another, so repeated melody notes require another pluck. */
 export class PitchTracker {
+  constructor(public settings: Readonly<PitchDetectionSettings> = DEFAULT_PITCH_SETTINGS) {}
+
+  // Keep the confirmed pitch separate from the current candidate. A brief
+  // octave error must not rearm the original note when it returns.
   private midi: number | null = null;
+  private candidateMidi: number | null = null;
   private frames = 0;
-  private previousLevel = 0;
+  private noteFrames = 0;
+  private lastReadingAt = -Infinity;
+  private interrupted = false;
+  private valleyLevel = 0;
+  private peakLevel = 0;
+  private attackReady = true;
   private lastAttackAt = -Infinity;
   private attackId = 0;
 
-  update(reading: PitchReading | null, now: number, level = reading?.rms ?? 0, appSound = false): PitchSample {
-    if (!reading || appSound) {
+  private trackAttack(level: number, now: number, allowed: boolean) {
+    this.peakLevel = Math.max(this.peakLevel, level);
+    if (level < this.peakLevel * .8) this.attackReady = true;
+    this.valleyLevel = Math.min(this.valleyLevel, level);
+    const attack = allowed && this.attackReady && level > this.valleyLevel * (1 + this.settings.attackRisePercent / 100)
+      && level - this.valleyLevel > .00001 && now - this.lastAttackAt >= this.settings.minAttackMs;
+    if (attack) {
+      this.valleyLevel = this.peakLevel = level;
+      this.attackReady = false;
+      this.attackId++;
+      this.lastAttackAt = now;
+      this.noteFrames = 1;
+    } else if (!this.attackReady) this.valleyLevel = level;
+    return attack;
+  }
+
+  update(reading: PitchReading | null, now: number, level = reading?.rms ?? 0, appSound = false, attackLevel = level): PitchSample {
+    // A missing pitch is not necessarily silence: string noise can briefly
+    // hide a sustained fundamental. Only a sustained gap releases the note.
+    if (appSound || (this.interrupted && now - this.lastReadingAt >= this.settings.releaseMs)) {
       this.midi = null;
+      this.noteFrames = 0;
+      this.valleyLevel = 0;
+      this.peakLevel = 0;
+      this.attackReady = true;
+    }
+    if (!reading || appSound || reading.confidence < .65) {
+      // A real pluck may briefly obscure its pitch. Retain a rising envelope
+      // during that gap, but never use an absent pitch as a zero-level trough.
+      if (!appSound && this.midi !== null && attackLevel > this.valleyLevel) {
+        this.trackAttack(attackLevel, now, true);
+      }
+      this.candidateMidi = null;
       this.frames = 0;
-      this.previousLevel = 0;
+      this.interrupted = true;
       return { reading: null, stable: false, attackId: this.attackId, level, appSound };
     }
-    const changed = reading.midi !== this.midi;
-    const attack = level > this.previousLevel * 1.8
-      && level - this.previousLevel > Math.max(.00001, this.previousLevel * .5)
-      && now - this.lastAttackAt > 180;
-    if (changed || attack) { this.attackId++; this.lastAttackAt = now; this.frames = 0; }
-    this.frames++;
-    this.midi = reading.midi;
-    this.previousLevel = level;
+    this.interrupted = false;
+    this.lastReadingAt = now;
+    this.frames = reading.midi === this.candidateMidi ? this.frames + 1 : 1;
+    this.candidateMidi = reading.midi;
+    const changed = reading.midi !== this.midi && (this.midi === null || this.frames >= 3);
+    // Accumulate a rise from the local trough: overlapping analysis windows
+    // can spread one pluck over several frames. Require a decay before the
+    // next attack so one rising envelope cannot count repeatedly.
+    const attack = this.trackAttack(attackLevel, now, reading.midi === this.midi);
+    if (changed) {
+      this.valleyLevel = this.peakLevel = attackLevel;
+      this.attackReady = true;
+      this.attackId++;
+      this.lastAttackAt = now;
+    }
+    if (changed) {
+      this.midi = reading.midi;
+      this.noteFrames = this.frames;
+    } else if (!attack && reading.midi === this.midi) this.noteFrames++;
     return {
-      reading, stable: this.frames >= 3 && reading.confidence >= .65,
+      reading, stable: reading.midi === this.midi && this.noteFrames >= 3,
       attackId: this.attackId, level, appSound: false,
     };
   }

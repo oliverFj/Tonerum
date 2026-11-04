@@ -1,46 +1,35 @@
 import { Button, Select } from './StudioControls';
-import type { CSSProperties } from 'react';
 import { findPositions, noteName, octave } from '../music/theory';
 import { signalDecibels, signalPercent } from '../music/pitch';
 import { isDirectGuitarInput } from '../music/microphone';
 import type { useMicrophone } from '../hooks/useMicrophone';
-import type { usePractice } from '../hooks/usePractice';
 import { Icon } from './Icon';
 import InputCalibration from './InputCalibration';
+import ToneDetectionSettings from './ToneDetectionSettings';
 import type { Instrument } from '../music/types';
 import { instrumentPositions } from '../music/instruments';
 
 interface Props {
   instrument?: Instrument;
   microphone: ReturnType<typeof useMicrophone>;
-  practice: ReturnType<typeof usePractice>;
-  melodyTitle: string;
-  poolSize: number;
-  useHandPosition: boolean;
   onStartMicrophone: () => Promise<boolean>;
   onStopMicrophone: () => void;
-  onStartPractice: () => Promise<void>;
   onStartCalibration: () => Promise<void>;
-  onReference: (midi: number) => void;
 }
 
-export default function LearningPanel({ instrument = 'guitar', microphone, practice, melodyTitle, poolSize, useHandPosition, onStartMicrophone, onStopMicrophone, onStartPractice, onStartCalibration, onReference }: Props) {
+export default function LearningPanel({ instrument = 'guitar', microphone, onStartMicrophone, onStopMicrophone, onStartCalibration }: Props) {
   const { sample, status } = microphone;
   const violin = instrument === 'violin';
   const ownInstrument = violin ? 'violin' : 'guitar';
   const { reading, stable, appSound } = sample;
-  const { state, target, active, mode, input } = practice;
   const listening = status === 'listening';
   const cents = reading ? Math.round(reading.cents) : 0;
   const level = Math.round(signalPercent(sample.level));
   const decibels = signalDecibels(sample.level);
-  const correct = state.phase === 'correct';
-  const completed = state.phase === 'complete';
-  const done = completed ? state.queue.length : state.index + (correct ? 1 : 0);
   const directInput = isDirectGuitarInput(microphone.inputLabel ?? '');
   const missingDevice = microphone.deviceId && !microphone.devices.some(device => device.deviceId === microphone.deviceId);
 
-  return <section className="learning-section" aria-label={`Lyt til din ${ownInstrument} og øv enkelttoner`}>
+  return <section className="learning-section" aria-label={`Lydindstillinger til din ${ownInstrument}`}>
     <div className="learning-heading"><div><p className="eyebrow">{violin ? 'LÆR MED VIOLINEN' : 'LÆR MED GUITAREN'}</p><h2>Spil en tone. Se hvor den bor.</h2></div><span>Enkelttoner · i dit eget tempo</span></div>
     <div className="learning-tools">
       <section className="card microphone-card" aria-label="Lydindgang og tonegenkendelse">
@@ -55,19 +44,10 @@ export default function LearningPanel({ instrument = 'guitar', microphone, pract
         {microphone.error && <p className="inline-notice" role="alert">{microphone.error}</p>}
         {reading && stable && !findPositions(reading.midi, 'exact', instrumentPositions(instrument)).length && <p className="inline-notice">Tonen ligger uden for det viste gribebræt.</p>}
         <InputCalibration instrument={instrument} microphone={microphone} onStart={onStartCalibration} />
+        <ToneDetectionSettings microphone={microphone} />
         <p className="learning-footnote">Lyden analyseres kun her og gemmes ikke. Indgangen afspilles ikke gennem højttalerne. Vi genkender tone og oktav, men ikke den streng eller finger, du bruger.</p>
       </section>
 
-      <section className="card practice-card" aria-label="Spil og toneøvelser">
-        <div className="section-heading"><h2><Icon name="spark" size={17} />Tonejagt</h2><span className="soft-badge">Ekstra øvelse</span></div>
-        <div className={`practice-prompt ${correct || completed ? 'success' : ''}`} aria-live="polite">
-          {completed ? <><span className="practice-target-note">✓</span><div><strong>Flot! Du fandt alle {state.queue.length} toner.</strong><p>{state.mistakes === 0 ? 'Alle toner blev ramt i første forsøg.' : `${state.queue.length + state.mistakes} forsøg · prøv igen, og se om det bliver lettere.`}</p></div></> : target !== null ? <><span className="practice-target-note">{noteName(target)}<sub>{octave(target)}</sub></span><div><strong>{correct ? 'Rigtigt! Den tone sidder der.' : `Find ${noteName(target, true)}`}</strong><p>{!correct && state.lastAnswer !== null ? `Du ${input === 'microphone' ? 'spiller' : 'valgte'} ${noteName(state.lastAnswer, true)}. Prøv igen.` : input === 'microphone' ? `Spil tonen på ${violin ? 'violinen' : 'guitaren'}. Hold den et kort øjeblik.` : 'Klik på en placering på gribebrættet eller en tangent.'}</p></div></> : <><span className="practice-target-note"><Icon name="music" size={28} /></span><div><strong>{mode === 'hunt' ? 'Hvor ligger tonen?' : 'Lad instrumentet føre melodien frem'}</strong><p>{mode === 'hunt' ? 'Find 10 toner fra den valgte melodi — i den rigtige oktav.' : `Øv ${melodyTitle}, én tone ad gangen.`}</p></div></>}
-        </div>
-        <div className="practice-progress" role="progressbar" aria-label="Toner fundet" aria-valuemin={0} aria-valuemax={state.queue.length || 10} aria-valuenow={done}><i style={{ '--practice-progress': `${state.queue.length ? done / state.queue.length * 100 : 0}%` } as CSSProperties} /></div>
-        <div className="practice-controls"><label>Svar med<Select aria-label="Svarmetode i øvelsen" value={input} onChange={e => practice.setInput(e.target.value as 'click' | 'microphone')}><option value="click">Klik på instrumentet</option><option value="microphone">Mikrofon / USB-kabel</option></Select></label><span className="practice-count">{active || completed ? `${done} / ${state.queue.length} toner` : mode === 'hunt' ? `${poolSize} forskellige toner · ${useHandPosition ? 'med foretrukket område' : 'hele gribebrættet'}` : 'Rytmen vurderes ikke · pauser springes over'}</span></div>
-        <div className="practice-actions">{active ? <><Button className="learning-secondary" onClick={practice.stop}>Stop øvelse</Button><Button className={`learning-text-button ${state.hint ? 'active' : ''}`} aria-pressed={state.hint} onClick={practice.hint}>{state.hint ? 'Skjul placeringer' : 'Vis placeringer'}</Button>{target !== null && <Button className="learning-text-button" onClick={() => onReference(target)}><Icon name="sound" size={14} />Hør tonen</Button>}</> : <Button className="learning-primary" disabled={mode === 'hunt' && !poolSize || status === 'requesting' || microphone.calibrating} onClick={() => void onStartPractice()}><Icon name={input === 'microphone' ? 'mic' : 'play'} size={14} />{microphone.calibrating ? 'Afventer kalibrering' : completed ? 'Prøv igen' : 'Start øvelse'}</Button>}</div>
-        <p className="learning-footnote">{input === 'microphone' ? violin ? 'Gentagne toner kræver et tydeligt nyt strøg eller et kort ophold.' : 'Anslå hver tone igen, også ved gentagelser. Brug hovedtelefoner til guidetoner.' : 'Slå tonenavne fra på gribebrættet, når du vil øve hukommelsen.'}</p>
-      </section>
     </div>
   </section>;
 }

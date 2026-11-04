@@ -25,6 +25,35 @@
 .studio-header { border-bottom-color: var(--ds-color-border-default); }
 .studio-header .brand { color: var(--ds-color-brand-logoInk); font-weight: 800; letter-spacing: -1.2px; gap: 6px; }
 .studio-header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+#root .studio-songbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(240px, 365px);
+  align-items: start;
+  gap: 12px 16px;
+}
+#root .studio-songbar .exercise-picker { display: contents; }
+#root .studio-songbar .exercise-tabs { align-self: center; justify-self: start; }
+#root .studio-songbar .melody-picker { display: flex; align-items: center; width: auto; min-width: 0; }
+#root .studio-songbar .melody-picker > label,
+#root .studio-songbar .fingering-picker > label { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 0; flex: 1; white-space: normal; }
+#root .studio-songbar > .fingering-picker { width: auto; max-width: none; min-width: 0; }
+#root .studio-songbar .melody-field-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 20px; }
+#root .studio-songbar .fingering-picker > label > .field-label { display: flex; align-items: center; min-height: 20px; font-size: 8px; }
+#root .studio-songbar .key-badge { margin: 0; padding: 0 5px; font-size: 9px; line-height: 18px; gap: 5px; }
+#root .studio-songbar .select-wrap { display: block; margin-top: 0; min-width: 0; }
+#root .studio-songbar .select-wrap select { width: 100%; min-width: 0; max-width: none; }
+#root .studio-songbar .select-wrap > svg { top: 50%; transform: translateY(-50%); }
+@media (max-width: 1100px) {
+  #root .studio-songbar { grid-template-columns: auto minmax(0, 1fr) minmax(200px, .8fr); }
+  #root .studio-songbar .music-tile { display: none; }
+  #root .studio-songbar .scale-picker { min-width: 0; }
+}
+@media (max-width: 700px) {
+  #root .studio-songbar { grid-template-columns: minmax(0, 1fr); }
+  #root .studio-songbar .exercise-tabs { display: flex; justify-self: stretch; }
+  #root .studio-songbar .exercise-tabs > button { flex: 1; }
+  #root .studio-songbar .melody-field-heading { flex-wrap: wrap; }
+}
 .trainer-card, .explorer, .card, .scrolling-staff, .hunt-banner {
   border-color: var(--border);
   border-radius: var(--ds-radius-card);
@@ -55,6 +84,13 @@
 .staff-note { color: var(--staff-note); }
 .workspace-tabs, .exercise-tabs, .training-modes { min-width: 0; }
 .trainer-transport { max-width: 270px; }
+.trainer-main > .training-modes { flex: 0 0 auto; }
+.trainer-main > .trainer-transport { max-width: none; flex-shrink: 0; }
+#root .trainer-bottom .trainer-live { display: flex; flex-direction: row; align-items: center; gap: 8px; min-width: 0; border: 0; padding: 0; }
+#root .trainer-bottom .trainer-live strong { font-size: 15px; min-width: 0; }
+#root .trainer-bottom .trainer-live .live-level { width: 45px; margin: 0; }
+#root .trainer-options[hidden], #root .guitar-shortcuts[hidden] { display: none; }
+.trainer-bottom { flex-wrap: wrap; row-gap: 6px; }
 .ds-button > svg { flex-shrink: 0; }
 @media (max-width: 1000px) {
   .studio-header { height: auto; flex-wrap: wrap; padding-block: 10px; gap: 10px; }
@@ -65,4 +101,9 @@
   .workspace-tabs, .training-modes { display: flex; }
   .workspace-tabs > button, .training-modes > button { flex: 1; }
   .trainer-transport { max-width: none; }
+}
+@media (max-width: 900px) {
+  .trainer-main { flex-wrap: wrap; }
+  .trainer-main > .trainer-target { flex-basis: 100%; }
+  .trainer-main > .training-modes { flex: 1; }
 }

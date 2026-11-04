@@ -3,11 +3,19 @@ import { IDLE_MICROPHONE, MicrophoneListener } from '../music/microphone';
 import type { MicrophoneSensitivity } from '../music/microphone';
 import { VIOLIN_TUNING } from '../music/instruments';
 import { CALIBRATION_STRINGS } from '../music/calibration';
+import { loadPitchSettings, savePitchSettings } from '../music/pitchSettings';
+import type { PitchDetectionSettings } from '../music/pitch';
 import type { Instrument } from '../music/types';
 
 export function useMicrophone(instrument: Instrument = 'guitar') {
   const [state, setState] = useState(IDLE_MICROPHONE);
-  const [listener] = useState(() => new MicrophoneListener(setState));
+  const [detectionSettings, setDetectionState] = useState(loadPitchSettings);
+  const [detectionSaveStatus, setDetectionSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle');
+  const [listener] = useState(() => {
+    const instance = new MicrophoneListener(setState);
+    instance.setDetectionSettings(detectionSettings);
+    return instance;
+  });
   const [sensitivity, setSensitivityState] = useState<MicrophoneSensitivity>('quiet');
   const [deviceId, setDeviceId] = useState('');
   const [devices, setDevices] = useState<{ deviceId: string; label: string }[]>([]);
@@ -45,7 +53,16 @@ export function useMicrophone(instrument: Instrument = 'guitar') {
     listener.setSensitivity(value);
     setSensitivityState(value);
   };
+  const setDetectionSettings = (settings: Readonly<PitchDetectionSettings>) => {
+    listener.setDetectionSettings(settings);
+    setDetectionState(settings);
+    setDetectionSaveStatus('idle');
+  };
+  const saveDetectionSettings = () => {
+    setDetectionSaveStatus(savePitchSettings(detectionSettings) ? 'saved' : 'error');
+  };
   return { ...state, sensitivity, setSensitivity, deviceId, devices, selectDevice,
+    detectionSettings, setDetectionSettings, saveDetectionSettings, detectionSaveStatus,
     calibrating: state.calibration.phase === 'noise' || state.calibration.phase === 'strings',
     startCalibration: listener.startCalibration, cancelCalibration: listener.cancelCalibration,
     finishCalibration: listener.finishCalibration,

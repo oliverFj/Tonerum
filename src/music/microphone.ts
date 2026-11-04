@@ -1,6 +1,6 @@
 import { isAppSoundActive } from './audio';
-import { detectPitch, PitchTracker, signalLevel } from './pitch';
-import type { PitchSample } from './pitch';
+import { DEFAULT_PITCH_SETTINGS, detectPitch, PitchTracker, signalLevel } from './pitch';
+import type { PitchDetectionSettings, PitchSample } from './pitch';
 import { GUITAR_INPUT_FILTERS, MICROPHONE_FRAME_MS } from './inputFilters';
 import { EMPTY_CALIBRATION, InputCalibration } from './calibration';
 import type { CalibrationState } from './calibration';
@@ -41,10 +41,12 @@ export class MicrophoneListener {
   private resources: { context: AudioContext; stream: MediaStream | null; nodes: AudioNode[]; timer: number | null } | null = null;
   private pending = false;
   private sensitivity: MicrophoneSensitivity = 'quiet';
+  private detectionSettings: Readonly<PitchDetectionSettings> = DEFAULT_PITCH_SETTINGS;
   private calibration = new InputCalibration();
   private calibratedInput = '';
 
   setSensitivity = (sensitivity: MicrophoneSensitivity) => { this.sensitivity = sensitivity; this.calibration.reset(); };
+  setDetectionSettings = (settings: Readonly<PitchDetectionSettings>) => { this.detectionSettings = settings; };
   startCalibration = () => { if (this.resources && !this.pending) this.calibration.start(); };
   cancelCalibration = () => { this.calibration.cancel(); };
   finishCalibration = () => { this.calibration.finish(); };
@@ -124,6 +126,9 @@ export class MicrophoneListener {
         if (generation !== this.generation) return;
         analyser.getFloatTimeDomainData(samples);
         const level = signalLevel(samples);
+        // Keep the long window for low guitar fundamentals, but measure
+        // attacks over the latest ~23 ms so repeated plucks stay distinct.
+        const attackLevel = signalLevel(samples.subarray(-Math.round(context.sampleRate * .023)));
         const gate = this.calibration.analysisGate(microphoneGate(this.sensitivity, noiseFloor));
         // A direct guitar cable cannot hear our speaker playback. Keep listening
         // during reference tones; acoustic microphones still need suppression.
@@ -132,7 +137,8 @@ export class MicrophoneListener {
         // Learn the background from unpitched sound. Quiet, sustained guitar
         // notes must not raise their own threshold until they disappear.
         if (!this.calibration.active && !appSound && !reading) noiseFloor += (level - noiseFloor) * (level < noiseFloor ? .15 : .01);
-        const sample = tracker.update(reading, performance.now(), level, appSound);
+        tracker.settings = this.detectionSettings;
+        const sample = tracker.update(reading, performance.now(), level, appSound, attackLevel);
         this.calibration.update(sample);
         this.onChange({ status: 'listening', error: null, sample, gate,
           inputLabel, calibration: this.calibration.state });

@@ -8,5 +8,6 @@ import '../design/design.css';
 import '../design/dark.css';
 import './design-integration.css';
 import './dark-appearance.css';
+import './compact-layout.css';
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);

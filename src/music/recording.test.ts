@@ -64,7 +64,8 @@ test('the real microphone recording produces stable guitar notes and no notes in
     const reading = detectPitch(frame, rate, microphoneGate('quiet', noiseFloor));
     if (!reading) noiseFloor += (level - noiseFloor) * (level < noiseFloor ? .15 : .01);
     const time = end / rate;
-    if (tracker.update(reading, time * 1000, level).stable && reading) stable.push({ time, midi: reading.midi });
+    const attackLevel = signalLevel(frame.subarray(-Math.round(rate * .023)));
+    if (tracker.update(reading, time * 1000, level, false, attackLevel).stable && reading) stable.push({ time, midi: reading.midi });
   }
   assert.ok(stable.length >= 40, `only ${stable.length} stable frames`);
   assert.equal(stable.filter(frame => frame.time < 1.9 || frame.time > 11.9).length, 0, 'background must not become a played note');
@@ -75,5 +76,29 @@ test('the real microphone recording produces stable guitar notes and no notes in
   ]) {
     assert.ok(stable.some(frame => frame.time >= start && frame.time <= end && frame.midi === midi),
       `missing MIDI ${midi} around ${start}s; observed: ${JSON.stringify(stable.filter(frame => frame.midi === midi))}`);
+  }
+});
+
+test('overlapping analysis windows still count six close plucks of the same pitch exactly once each', () => {
+  for (const rate of [44100, 48000]) for (const midi of [40, 60, 76]) {
+    const frequency = 440 * 2 ** ((midi - 69) / 12);
+    const input = Float32Array.from({ length: Math.round(rate * 1.4) }, (_, i) => {
+      const time = i / rate - .2;
+      if (time < 0) return 0;
+      const age = time < .96 ? time % .16 : time - .8;
+      const phase = 2 * Math.PI * frequency * i / rate;
+      return .005 * Math.exp(-age / .1) * (Math.sin(phase) + .4 * Math.sin(phase * 2));
+    });
+    const filtered = filterInput(input, rate);
+    const tracker = new PitchTracker();
+    const attacks = new Set<number>();
+    for (let end = 4096; end <= filtered.length; end += Math.round(rate * MICROPHONE_FRAME_MS / 1000)) {
+      const frame = filtered.subarray(end - 4096, end);
+      const reading = detectPitch(frame, rate, .000015);
+      const sample = tracker.update(reading, end / rate * 1000, signalLevel(frame), false,
+        signalLevel(frame.subarray(-Math.round(rate * .023))));
+      if (sample.stable && reading?.midi === midi) attacks.add(sample.attackId);
+    }
+    assert.equal(attacks.size, 6, `MIDI ${midi} at ${rate} Hz`);
   }
 });

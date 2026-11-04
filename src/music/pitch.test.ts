@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { detectPitch, PitchTracker, signalDecibels, signalLevel, signalPercent } from './pitch';
+import { DEFAULT_PITCH_SETTINGS, detectPitch, PitchTracker, signalDecibels, signalLevel, signalPercent } from './pitch';
 import { microphoneGate } from './microphone';
 import type { PitchReading } from './pitch';
 
@@ -116,4 +116,120 @@ test('a fresh weak pluck also rearms a repeated note without needing a loud abso
   const pluck = tracker.update(reading(60, .00006), 350);
   assert.ok(pluck.attackId > held.attackId);
   assert.equal(pluck.stable, false);
+});
+
+test('quick repeated notes register moderate rises spread across multiple frames', () => {
+  const tracker = new PitchTracker();
+  const update = (time: number, level: number) => tracker.update(reading(), time, .02, false, level);
+  update(0, .02);
+  update(40, .018);
+  const held = update(80, .017);
+  assert.equal(held.stable, true);
+  assert.equal(update(120, .02).attackId, held.attackId);
+  const second = update(160, .024);
+  assert.equal(second.attackId, held.attackId + 1);
+  update(200, .019);
+  assert.equal(update(240, .017).stable, true);
+  update(280, .02);
+  const third = update(320, .024);
+  assert.equal(third.attackId, second.attackId + 1);
+  update(360, .024);
+  assert.equal(update(400, .024).stable, true);
+});
+
+test('small level fluctuations and a single long rise cannot create extra attacks', () => {
+  const tracker = new PitchTracker();
+  let time = 0;
+  const update = (level: number) => tracker.update(reading(60, level), time += 40);
+  const first = update(.02);
+  for (const level of [.019, .021, .018, .02, .021, .019, .02]) {
+    assert.equal(update(level).attackId, first.attackId);
+  }
+  const attack = update(.03);
+  assert.equal(attack.attackId, first.attackId + 1);
+  for (const level of [.034, .04, .045, .05, .055, .06, .06]) {
+    assert.equal(update(level).attackId, attack.attackId);
+  }
+});
+
+test('a brief unpitched dropout does not turn a held note into another attempt', () => {
+  const tracker = new PitchTracker();
+  tracker.update(reading(), 0);
+  tracker.update(reading(), 40);
+  const held = tracker.update(reading(), 80);
+  assert.equal(tracker.update(null, 120, .02).stable, false);
+  for (const time of [160, 200, 240]) {
+    assert.equal(tracker.update(reading(), time).attackId, held.attackId);
+  }
+  assert.equal(tracker.update(reading(), 280).stable, true);
+});
+
+test('one or two wrong pitch frames cannot rearm the original held note', () => {
+  for (const glitch of [61, 72]) for (const length of [1, 2]) {
+    const tracker = new PitchTracker();
+    tracker.update(reading(), 0);
+    tracker.update(reading(), 40);
+    const held = tracker.update(reading(), 80);
+    let time = 120;
+    for (let frame = 0; frame < length; frame++, time += 40) {
+      const sample = tracker.update(reading(glitch), time);
+      assert.equal(sample.stable, false);
+      assert.equal(sample.attackId, held.attackId);
+    }
+    for (let frame = 0; frame < 3; frame++, time += 40) {
+      assert.equal(tracker.update(reading(), time).attackId, held.attackId);
+    }
+    const changed = [0, 1, 2].map(frame => tracker.update(reading(62), time + frame * 40));
+    assert.equal(changed[2].stable, true);
+    assert.equal(changed[2].attackId, held.attackId + 1, 'a genuine legato change still counts');
+  }
+});
+
+test('a sustained loss of pitch releases the note and permits a new quiet attempt', () => {
+  const tracker = new PitchTracker();
+  tracker.update(reading(), 0);
+  tracker.update(reading(), 40);
+  const held = tracker.update(reading(), 80);
+  tracker.update(null, 120);
+  tracker.update(null, 160);
+  tracker.update(null, 200);
+  const next = tracker.update(reading(60, .00005), 240);
+  assert.equal(next.attackId, held.attackId + 1);
+  assert.equal(next.stable, false);
+  tracker.update(reading(60, .00005), 280);
+  assert.equal(tracker.update(reading(60, .00005), 320).stable, true);
+});
+
+test('attack sensitivity can be changed live without rearming the held note', () => {
+  const tracker = new PitchTracker({ ...DEFAULT_PITCH_SETTINGS, attackRisePercent: 70 });
+  tracker.update(reading(), 0);
+  tracker.update(reading(), 40);
+  const held = tracker.update(reading(), 80);
+  assert.equal(tracker.update(reading(60, .03), 160).attackId, held.attackId);
+  tracker.settings = DEFAULT_PITCH_SETTINGS;
+  const pluck = tracker.update(reading(60, .03), 200);
+  assert.equal(pluck.attackId, held.attackId + 1);
+  assert.equal(pluck.stable, false);
+});
+
+test('the minimum attack interval rejects close plucks until the selected time', () => {
+  const tracker = new PitchTracker({ ...DEFAULT_PITCH_SETTINGS, minAttackMs: 200 });
+  tracker.update(reading(), 0);
+  tracker.update(reading(), 40);
+  const held = tracker.update(reading(), 80);
+  assert.equal(tracker.update(reading(60, .03), 160).attackId, held.attackId);
+  assert.equal(tracker.update(reading(60, .03), 200).attackId, held.attackId + 1);
+});
+
+test('a longer release tolerance retains a held note across a longer dropout', () => {
+  const tracker = new PitchTracker({ ...DEFAULT_PITCH_SETTINGS, releaseMs: 240 });
+  tracker.update(reading(), 0);
+  tracker.update(reading(), 40);
+  const held = tracker.update(reading(), 80);
+  tracker.update(null, 120, .02);
+  tracker.update(null, 200, .02);
+  assert.equal(tracker.update(reading(), 240).attackId, held.attackId);
+  tracker.update(null, 280, .02);
+  tracker.update(null, 400, .02);
+  assert.equal(tracker.update(reading(), 480).attackId, held.attackId + 1);
 });

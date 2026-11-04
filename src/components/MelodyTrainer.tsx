@@ -1,5 +1,5 @@
 import { Button, SegmentedOption } from './StudioControls';
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { useMelodyTrainer } from '../hooks/useMelodyTrainer';
 import type { useMicrophone } from '../hooks/useMicrophone';
@@ -36,6 +36,8 @@ export default function MelodyTrainer({ instrument = 'guitar', trainer, micropho
   const { state, mode, timeline, started, active } = trainer;
   const isScale = melody.category === 'Skalaer';
   const laneRef = useRef<HTMLDivElement>(null);
+  const [extraControlsOpen, setExtraControlsOpen] = useState(false);
+  const extraControlsId = useId();
   const index = demoPlaying ? demoIndex : trainer.index;
   useEffect(() => {
     const lane = laneRef.current;
@@ -60,11 +62,7 @@ export default function MelodyTrainer({ instrument = 'guitar', trainer, micropho
   const startHint = guitarShortcuts && firstNote?.type === 'note'
     ? `Spil ${noteName(firstNote.midi, true)} for at ${done ? 'øve igen' : 'starte'}. Anslaget tæller som første tone.${mode === 'rhythm' ? ' Tempoet starter med dit anslag.' : ''}` : '';
   return <section className="trainer-card" aria-label={isScale ? 'Øv skala' : 'Følg melodien'}>
-    <div className="trainer-options">
-      <div role="group" className="ds-segmented-control training-modes" aria-label="Øvemåde">
-        <SegmentedOption className={mode === 'wait' ? 'active' : ''} aria-pressed={mode === 'wait'} onClick={() => trainer.setMode('wait')}>Vent på korrekt tone</SegmentedOption>
-        <SegmentedOption className={mode === 'rhythm' ? 'active' : ''} aria-pressed={mode === 'rhythm'} onClick={() => trainer.setMode('rhythm')}>Følg tempoet</SegmentedOption>
-      </div>
+    <div id={`${extraControlsId}-options`} className="trainer-options" hidden={!extraControlsOpen}>
       <div className="trainer-tempo"><Button className={`metronome-toggle ${metronomeOn ? 'on' : ''}`} aria-pressed={metronomeOn} aria-label={metronomeOn ? 'Stop metronom' : 'Start metronom'} disabled={microphone.calibrating} onClick={onMetronome}><i key={metronomePulse} className={metronomeOn && metronomePulse > 0 ? 'tick' : ''} aria-hidden="true" />Metronom</Button><label htmlFor="practice-speed">Hastighed <strong>{Math.round(tempo / melody.tempo * 100)} %</strong></label><input id="practice-speed" type="range" min="25" max="150" step="5" value={Math.round(tempo / melody.tempo * 100)} onChange={e => onTempo(Math.round(melody.tempo * +e.target.value / 100))} /><label><input type="number" aria-label="Tempo i slag per minut" min="20" max="240" value={tempo} onChange={e => onTempo(Math.max(20, Math.min(240, +e.target.value || 20)))} /> BPM</label></div>
     </div>
     <div className="trainer-main">
@@ -75,7 +73,10 @@ export default function MelodyTrainer({ instrument = 'guitar', trainer, micropho
           <p>{demoPlaying ? 'Lyt og følg markeringerne. Start øvelsen, når du selv vil spille.' : done ? missed ? `${missed} ikke ramt · prøv et langsommere tempo, eller øv med ventefunktion. ${startHint}` : `Alle toner ramt! ${startHint || 'Øv igen, når du er klar.'}` : paused ? instrument === 'violin' ? 'Fortsæt, når du er klar. Brug et nyt strøg.' : 'Fortsæt, når du er klar. Slå tonen an igen.' : waiting ? reading && reading.midi !== trainer.target ? `Du spiller ${noteName(reading.midi, true)}. Vi venter på ${noteName(trainer.target!, true)}.` : 'Øvelsen venter på dit anslag i den rigtige oktav.' : countin ? 'Første tone kommer, når nedtællingen når nul.' : active ? next?.event.type === 'note' ? `Næste tone: ${noteName(next.event.midi, true)} om ${seconds.toFixed(1)} sek.` : 'Sidste tone — lad den klinge.' : startHint || 'Spil på dit instrument. Tonerne bliver markeret, når du rammer dem.'}</p>
         </div>
       </div>
-      <div className="trainer-live"><span className="live-label">{instrument === 'violin' ? 'DIN VIOLIN' : 'DIN GUITAR'}</span><strong>{reading ? noteName(reading.midi, true) : '–'}</strong><span>{microphone.sample.appSound ? 'Afventer guidetone' : reading ? `${Math.round(reading.cents) > 0 ? '+' : ''}${Math.round(reading.cents)} cent` : microphone.status === 'listening' ? 'Lytter…' : 'Lydindgang slukket'}</span><div className="live-level" role="meter" aria-label={instrument === 'violin' ? 'Violinens lydniveau' : 'Guitarens lydniveau'} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(signalPercent(microphone.sample.level))}><i style={{ width: `${signalPercent(microphone.sample.level)}%` }} /></div></div>
+      <div role="group" className="ds-segmented-control training-modes" aria-label="Øvemåde">
+        <SegmentedOption className={mode === 'wait' ? 'active' : ''} aria-pressed={mode === 'wait'} onClick={() => trainer.setMode('wait')}>Vent på korrekt tone</SegmentedOption>
+        <SegmentedOption className={mode === 'rhythm' ? 'active' : ''} aria-pressed={mode === 'rhythm'} onClick={() => trainer.setMode('rhythm')}>Følg tempoet</SegmentedOption>
+      </div>
       <div className="trainer-transport">
         {active ? <Button className="learning-primary" onClick={trainer.pause}><Icon name="pause" size={15} />Pause</Button> : <Button className="learning-primary" disabled={microphone.calibrating || microphone.status === 'requesting'} onClick={() => void onStart()}><Icon name="play" size={15} />{paused ? 'Fortsæt' : done ? 'Øv igen' : 'Start øvelse'}</Button>}
         {started && !done && <Button className="learning-text-button" onClick={trainer.stop}>Stop</Button>}
@@ -94,8 +95,8 @@ export default function MelodyTrainer({ instrument = 'guitar', trainer, micropho
         </div>;
       })}
     </div>}
-    <div className="trainer-bottom"><div className="song-progress" role="progressbar" aria-label="Fremdrift i melodien" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}><i style={{ width: `${progress * 100}%` }} /></div><span>{correct} / {total} ramt{missed > 0 ? ` · ${missed} ikke ramt` : ''}</span><Button className="learning-text-button" onClick={onMicrophone}>{microphone.status === 'listening' ? 'Sluk lydindgang' : 'Tænd lydindgang'}</Button><Button className="learning-text-button" onClick={onSettings}>Lydvalg og kalibrering</Button></div>
-    <div className={`guitar-shortcuts ${guitarShortcuts ? 'enabled' : ''}`}>
+    <div className="trainer-bottom"><div className="trainer-live trainer-live--inline"><span className="live-label">{instrument === 'violin' ? 'DIN VIOLIN' : 'DIN GUITAR'}</span><strong>{reading ? noteName(reading.midi, true) : '–'}</strong><span>{microphone.sample.appSound ? 'Afventer guidetone' : reading ? `${Math.round(reading.cents) > 0 ? '+' : ''}${Math.round(reading.cents)} cent` : microphone.status === 'listening' ? 'Lytter…' : 'Lydindgang slukket'}</span><div className="live-level" role="meter" aria-label={instrument === 'violin' ? 'Violinens lydniveau' : 'Guitarens lydniveau'} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(signalPercent(microphone.sample.level))}><i style={{ width: `${signalPercent(microphone.sample.level)}%` }} /></div></div><div className="song-progress" role="progressbar" aria-label="Fremdrift i melodien" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}><i style={{ width: `${progress * 100}%` }} /></div><span>{correct} / {total} ramt{missed > 0 ? ` · ${missed} ikke ramt` : ''}</span><Button className="learning-text-button" onClick={onMicrophone}>{microphone.status === 'listening' ? 'Sluk lydindgang' : 'Tænd lydindgang'}</Button><Button className="learning-text-button" onClick={onSettings}>Lydvalg og kalibrering</Button><Button className="learning-text-button" aria-expanded={extraControlsOpen} aria-controls={`${extraControlsId}-options ${extraControlsId}-shortcuts`} onClick={() => setExtraControlsOpen(open => !open)}>{extraControlsOpen ? 'Skjul ekstra betjening' : 'Vis ekstra betjening'}</Button></div>
+    <div id={`${extraControlsId}-shortcuts`} className={`guitar-shortcuts ${guitarShortcuts ? 'enabled' : ''}`} hidden={!extraControlsOpen}>
       <label className="switch-control"><input type="checkbox" checked={guitarShortcuts} onChange={e => onGuitarShortcuts(e.target.checked)} /><span className="switch" /><span>{instrument === 'violin' ? 'Start med første tone' : 'Guitargenveje'}</span></label>
       {instrument === 'guitar' && <div className="guitar-shortcut-notes">{GUITAR_CONTROLS.map(control => <span key={control.midi} className={guitarShortcuts && reading?.midi === control.midi ? 'heard' : ''} title={`Tynd E-streng · bånd ${control.fret}`}><b>{control.note}</b>{control.command === 'start' ? 'Start / øv igen' : control.command === 'pause' ? 'Pause / fortsæt' : 'Stop'}</span>)}</div>}
       <small>{microphone.status !== 'listening' ? 'Tænd lydindgangen først.' : instrument === 'violin' ? 'Gentagne toner: brug et tydeligt nyt strøg eller et kort ophold.' : 'Tynd E · bånd 17 / 18 / 19 · hold ca. ½ sek. og dæmp mellem genveje.'}</small>
