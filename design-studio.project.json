@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "libraryVersion": "3.4.2",
+  "libraryVersion": "3.5.0",
   "library": "design/runtime/components.mjs",
   "studioRoot": "E:/AI projekter/Design Studio",
   "package": "design/design.json",
@@ -8,6 +8,10 @@
   "scope": "#root",
   "starter": "studio-light",
   "components": {
+    "signature": {
+      "file": "src/components/Signature.tsx",
+      "export": "Signature"
+    },
     "button": {
       "file": "src/components/StudioControls.tsx",
       "export": "Button"

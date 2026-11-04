@@ -28,6 +28,7 @@ import { Icon } from './components/Icon';
 import Tuner from './components/Tuner';
 import CircleOfFifths from './components/CircleOfFifths';
 import { useAppearance } from './hooks/useAppearance';
+import { Signature } from './components/Signature';
 
 const logoLight = new URL('../design/assets/tonerum-symbol-light.svg', import.meta.url).href;
 const logoDark = new URL('../design/assets/tonerum-symbol-dark.svg', import.meta.url).href;
@@ -257,6 +258,7 @@ export default function App() {
       <div className="studio-footnote"><span>{colorMode === 'none' ? 'Baggrundstoner skjult · fingerplaceringer og spillede toner vises stadig' : workspace === 'practice' ? 'Gylden: foreslået placering · stiplet: andre placeringer · blågrøn: det du spiller' : `${analysis.pitches.length} meloditoner · håndposition ${useHandPosition ? 'til' : 'fra'}`}</span><Button className="learning-text-button" onClick={openSettings}>Visning, håndposition og nodekilde</Button></div>
       </>}
     </main>
+    <Signature appearance={resolvedAppearance} />
     <dialog ref={tunerRef} className="settings-dialog tuner-dialog" aria-labelledby="tuner-title" onCancel={() => setTunerOpen(false)} onClose={() => setTunerOpen(false)}>
       <div className="settings-heading"><div><p className="eyebrow">TONERUM · {instrument === 'violin' ? 'VIOLIN' : 'GUITAR'}</p><h2 id="tuner-title">Stemmeværktøj</h2></div><Button className="learning-secondary" onClick={() => setTunerOpen(false)}>Tilbage til øvelsen ×</Button></div>
       {tunerOpen && <Tuner key={instrument} instrument={instrument} microphone={microphone} onStart={startMicrophone} onStop={stopMicrophone} onReference={midi => void playReference(midi)} onSettings={openSettings} />}

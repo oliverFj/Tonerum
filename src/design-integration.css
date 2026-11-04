@@ -1,5 +1,6 @@
 /* Product composition only; control anatomy and states come from design.css. */
 .studio-shell.ds-layout { --ds-layout-max-width: 1560px; }
+.studio-signature { display: flex; justify-content: flex-end; margin-top: var(--ds-space-component-gap); }
 #root { --green: var(--ds-color-action-primary-rest-surface); --green-dark: var(--ds-color-action-primary-hover-surface); --ink: var(--ds-color-text-primary); --muted: var(--ds-color-text-secondary); --border: var(--ds-color-border-default); --paper: var(--ds-color-background-surface); --light-green: var(--ds-color-background-subtle); }
 #root {
   --surface-subtle: var(--ds-color-background-subtle);

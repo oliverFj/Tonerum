@@ -4,16 +4,16 @@ Tonerum er en browserapp til at øve melodier, skalaer og enkelttoner på guitar
 
 ## Brug appen
 
-Åbn **Tonerum.html** direkte i en moderne browser. Den samlede fil indeholder appens kode og udseende; der kræves ingen installation eller server til visning og afspilning. Nodehenvisninger åbner eksterne hjemmesider.
+Åbn [Tonerum online](https://oliver.fjordside.dk/tonerum/) eller **Tonerum.html** direkte i en moderne browser. Den samlede fil indeholder appens kode og udseende; der kræves ingen installation eller server til visning og afspilning. Nodehenvisninger åbner eksterne hjemmesider.
 
 1. Vælg guitar eller violin og derefter en sang eller skala.
 2. Lyt til melodien, og tilpas tempoet.
 3. Tænd lydindgangen, vælg din mikrofon eller dit USB-instrumentkabel, og giv browseren adgang.
 4. Vælg **Vent på korrekt tone** for at øve i eget tempo eller **Følg tempoet** for at øve med en fast puls.
 
-Gribebrættet kan vise forskellige grebsforslag, tonenavne og farver. Violinvisningen bruger første position og tilpasser melodiernes register. Rullende noder, et valgfrit klaver, metronom, stemmeværktøj og enkeltøvelsen Tonejagt supplerer meloditræningen. Brug hovedtelefoner, når appens guidetoner ellers opfanges af mikrofonen.
+Gribebrættet kan vise forskellige grebsforslag, tonenavne og farver. Violinvisningen bruger første position og tilpasser melodiernes register. Rullende noder, et valgfrit klaver, metronom, stemmeværktøj og enkeltøvelsen Tonejagt supplerer meloditræningen. Kvintcirklen forbinder tonearter, parallel mol og skalaøvelser og har en quiz med hints. Brug hovedtelefoner, når appens guidetoner ellers opfanges af mikrofonen.
 
-Browserens mikrofonregler varierer ved åbning af lokale filer. Hvis lydindgangen ikke er tilgængelig, kan appen køres på localhost som beskrevet nedenfor. Tonegenkendelsen er beregnet til enkelttoner.
+Browserens mikrofonregler varierer ved åbning af lokale filer. Hvis lydindgangen ikke er tilgængelig, kan onlineudgaven eller localhost bruges. Tonegenkendelsen er beregnet til enkelttoner.
 
 ## Sangkatalog
 
@@ -62,6 +62,34 @@ npm run build
 ```
 
 Kommandoen kontrollerer TypeScript, bygger appen og opdaterer både `dist/index.html` og den selvstændige `Tonerum.html`. Den selvstændige fil versionsstyres og skal genbygges ved ændringer i app eller musikdata. `dist/` og `node_modules/` versionsstyres ikke.
+
+## Design, hjemmeside og medier
+
+Design Studio leverer tema og fælles komponenter via `design-studio.project.json`. `src/components/Signature.tsx` er en tynd React-adapter til den fælles `signature` med Fjordside-identiteten. Den står nederst til højre uden ramme eller divider og følger lyst/mørkt tema. Logo, Platypi og licens medfølger offlinepakken.
+
+Hjemmesidens projekt ligger i `../Hjemmeside`. Efter et Tonerum-build kopieres appen til hjemmesidens egen `public/tonerum/index.html`:
+
+```sh
+node media/tonerum-study/integrate-website.mjs
+```
+
+Hjemmesidens normale build bruger denne lokale kopi og dens egne mediefiler. Byg og udgiv fra hjemmesidens mappe med `npm run build:production` og `npm run deploy:production`; et Tonerum-build alene opdaterer ikke onlineudgaven.
+
+Det godkendte produktkort er **A — Fra node til greb**. Fem faktiske screenshots viser guitar med noder og klaver, violin i mørkt tema, skalaer, kvintcirklen og en toneartsøvelse med hint. De færdige eksportfiler versionsstyres i hjemmesidens `assets/projects/tonerum/` og registreres i `content/projects.json`.
+
+Redigerbare mediekilder og optagevalg ligger i `media/tonerum-study/`. Genopbyg fra projektroden efter appens normale build:
+
+```sh
+node media/tonerum-study/capture.mjs
+node media/tonerum-study/build.mjs
+node media/tonerum-study/render.mjs
+```
+
+Optagelse kræver Playwright, Sharp og installeret Microsoft Edge. `NODE_PATH` kan pege på Codex' medfølgende Node-pakker. Output i `artifacts/product-media/tonerum/` er Git-ignoreret: sammenligningssiden `index.html`, fulde optagelser, beskårne screenshots, korteksporter og kontrolresultater. Der bruges ingen billedgenerering.
+
+`link-website.mjs a` kopierer det godkendte kort og screenshotserien til hjemmesiden og opdaterer projektposten; kør kun denne efter et bevidst medievalg. `verify-website.mjs` kontrollerer den byggede projektpost via hjemmesidens preview på port 8765; `--online` sammenligner offentlige filer med hjemmesidens buildmanifest.
+
+Appens direkte offlineåbning og signaturlink samt mediegalleriets desktop-/mobilvisning, projektlinks, Om projektet, stor visning, navigation og Escape er browserkontrolleret. Browserkontrollen bruger ikke et fysisk instrument eller en reel mikrofonmåling.
 
 ## Musikdata og kontrol
 
